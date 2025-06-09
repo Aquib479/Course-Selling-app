@@ -17,6 +17,6 @@ app.use(helmet());
 app.use(morgan("combined"));
 
 // routes
-app.use("/api", userRoute);
+app.use("/auth", userRoute);
 
 export default app;

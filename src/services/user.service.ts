@@ -35,6 +35,9 @@ export const loginUser = async (email: string, password: string) => {
   );
   if (!isPasswordCorrect) throw new Error("enter correct credentials");
 
-  const token = jwt.sign({ Email: email }, process.env.JWT_SECRET as string);
+  const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET as string, {
+    expiresIn: '1d'
+  });
   return token;
 };
+
