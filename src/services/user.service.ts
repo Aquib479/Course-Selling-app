@@ -6,12 +6,13 @@ interface RegisterPayload {
   name: string;
   email: string;
   password: string;
+  role: string;
 }
 
 export const createUser = async (payload: RegisterPayload) => {
-  const { name, email, password } = payload;
+  const { name, email, password, role } = payload;
 
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !role) {
     throw new Error("All fields are required");
   }
 
@@ -21,7 +22,12 @@ export const createUser = async (payload: RegisterPayload) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  const user = await User.create({ name, email, password: hashedPassword });
+  const user = await User.create({
+    name,
+    email,
+    password: hashedPassword,
+    role,
+  });
   return user;
 };
 
@@ -35,9 +41,12 @@ export const loginUser = async (email: string, password: string) => {
   );
   if (!isPasswordCorrect) throw new Error("enter correct credentials");
 
-  const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET as string, {
-    expiresIn: '1d'
-  });
+  const token = jwt.sign(
+    { userId: user.id, email: user.email, role: user.role },
+    process.env.JWT_SECRET as string,
+    {
+      expiresIn: "1d",
+    }
+  );
   return token;
 };
-

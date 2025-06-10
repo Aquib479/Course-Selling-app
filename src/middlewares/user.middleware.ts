@@ -1,25 +1,35 @@
-import { NextFunction, Request, Response } from "express"
-import jwt from 'jsonwebtoken';
+import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
-
-interface UserPayload {
-    userId: string,
-    email: string
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables.");
 }
 
-export const authorizeUser = async (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer")) {
-        return res.status(401).json({ message: "Unauthorized" })
-    }
-    const token = authHeader?.split(" ")[1];
+interface UserPayload {
+  userId: string;
+  email: string;
+  role: string;
+}
 
-    try {
-        const decode = jwt.verify(token, JWT_SECRET);
-        (req as any).user = decode;
-        next();
-    } catch (error) {
-        return res.status(403).json({ message: "Invalid token" })
-    }
-} 
+export const authorizeUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const token = authHeader || "";
+  if (!token) res.status(401).json({ message: "Unauthorized" });
+
+  try {
+    const decode = jwt.verify(token, JWT_SECRET) as unknown as UserPayload;
+    (req as any).user = decode;
+    next();
+  } catch (error) {
+    res.status(403).json({ message: "Invalid token" });
+  }
+};
